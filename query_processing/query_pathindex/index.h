@@ -1,3 +1,6 @@
+//
+// Created by sasaki on 19/04/16.
+//
 
 #ifndef QUERY_PATHINDEX_INDEX_H
 #define QUERY_PATHINDEX_INDEX_H
@@ -8,15 +11,12 @@ class PathIndex{
 public:
     int k;
     int labelnum; //original label num * 2;
-    bool workloadindex;
-
     vector< vector< pair<int,int> > > label2path;
-    google::dense_hash_map<long int, int> hash_labelid2index;
-    google::dense_hash_map<long int, int> givenindexworkload;
+    google::dense_hash_map<long int, int> labelidhash;
+    google::dense_hash_map<long int, int> workload;
 
     PathIndex(std::string);
-    void SetWorkload(std::string);
-
+    void Output(string output_filename);
 };
 
 inline int encodeLabel(vector<int>& labellist, int labelnum, int k){

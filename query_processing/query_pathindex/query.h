@@ -1,3 +1,6 @@
+//
+// Created by sasaki on 19/04/16.
+//
 
 #ifndef QUERY_PATHINDEX_QUERY_H
 #define QUERY_PATHINDEX_QUERY_H
@@ -79,14 +82,15 @@ public:
     void ConjunctionID(vector<pair<int,int>>&, vector<pair<int,int>>&,vector<pair<int,int>>&);
     void Label2Path(vector<pair<int,int>>&, PathIndex&, vector<int>&);
     void Label2PathID(vector<pair<int,int>>&, PathIndex&, vector<int>&);
-    //void Output(string output_filename);
+    void Output(string output_filename);
     void ShowQuery(QueryNode*);
 };
 
 class QuerySet{
 public:
     vector<Query> rootqueries;
-    void InputFile(string,PathIndex);
+    void InputFile(string);
+    void EnumerateQuery(int);
 };
 
 

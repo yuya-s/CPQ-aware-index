@@ -1,16 +1,18 @@
-
+//
+// Created by sasaki on 19/04/17.
+//
 #include "utility.h"
 #include "query.h"
 
 
 
-void QuerySet::InputFile(string workload_file, PathIndex index_){
+void QuerySet::InputFile(string workload_file){
 
     const char *workloadhfile=workload_file.c_str();
     std::ifstream inputwork(workloadhfile);
 
     if(!inputwork){
-        std::cout<<"error: cannot open graph and/or givenindexworkload files"<<std::endl;
+        std::cout<<"error: cannot open workload files"<<std::endl;
         exit(1);
     }
 
@@ -26,122 +28,76 @@ void QuerySet::InputFile(string workload_file, PathIndex index_){
     //tempNode->clear();
     tempNode = &rootNode;
     vector<int> labelsequence;
-
+    bool function;
+    bool leftdone=false;
     vector<vector<string>> perser;
 
-    vector<string> queryprocess;
-    vector<vector<string>> queryprocessset;
-    vector<int> labelset;
-    while(std::getline(inputwork,line)) {
+    while(std::getline(inputwork,line)){
 //        cout<<line<<endl;
-        bool queryDoneFlag = false;
-        bool labelFlag = false;
-        bool idFlag = false;
+        bool queryDoneFlag=false;
+        bool labelFlag=false;
+        bool idFlag=false;
         std::stringstream ss;
-        ss << line;
-        queryprocess.clear();
-        labelset.clear();
-        while (ss >> label) {
-            if (label == "!") {
-                queryDoneFlag = true;
+        ss<<line;
+        //cout<<ss.str()<<endl;
+        //ss.ignore(line.size(), ' ');
+        while(ss >> label)
+        {
+            if(label == "!"){
+                queryDoneFlag=true;
                 break;
             }
-            if (label != "!" && label != "c" && label != "j" && label != "c_id" && label != "j_id") {
-                labelFlag = true;
-                if (label == "id")idFlag = true;
-                else labelset.push_back(stoi(label));
+            else if(label == "c"||label == "j"||label == "c_id"||label == "j_id"){
+                if(label == "c")tempNode->SetOperation(CONJ);
+                else if(label =="j")tempNode->SetOperation(JOIN);
+                else if (label =="c_id")tempNode->SetOperation(CONJ_ID);
+                else if (label =="j_id")tempNode->SetOperation(JOIN_ID);
+                //tempNode->hight++;
+                tempNode->NewLeft();
+                tempNode->NewRight();
+                tempNode->leftNode->topNode = tempNode;
+                tempNode->rightNode->topNode = tempNode;
+                tempNode = tempNode->leftNode;
             }
-            queryprocess.push_back(label);
+            else{
+                labelFlag=true;
+                if(label=="id")idFlag=true;
+                else labelsequence.push_back(stoi(label));
+            }
         }
-
-        if (index_.workloadindex && labelFlag) {
-
-            bool firstFlag;
-            while (1) {
-                if (index_.hash_labelid2index[encodeLabel(labelset, index_.labelnum, index_.k)] > 0) {
-                    queryprocessset.push_back(queryprocess);
-                    break;
-
+        if(labelFlag){
+            tempNode->SetLabelSequence(labelsequence);
+            if(idFlag)tempNode->SetOperation(ID);
+            labelsequence.clear();
+            if(tempNode->topNode!=NULL) {
+                if (!tempNode->topNode->leftdone) {
+                    tempNode->topNode->leftdone = true;
+                    tempNode = tempNode->topNode->rightNode;
                 } else {
-                    vector<string> tempprocess;
-                    tempprocess.clear();
-                    if (firstFlag && idFlag) {
-                        tempprocess.push_back("j_id");
-                        queryprocessset.push_back(tempprocess);
-                        queryprocess.pop_back();
-                    } else {
-                        tempprocess.push_back("j");
-                        queryprocessset.push_back(tempprocess);
-                    }
+                    //tempNode->topNode->rightdone = true;
 
-                    labelset.erase(labelset.begin());
-                    tempprocess.clear();
-                    tempprocess.push_back(queryprocess[0]);
-                    queryprocessset.push_back(tempprocess);
-                    queryprocess.erase(queryprocess.begin());
-                }
-            }
-        } else if (!queryDoneFlag)queryprocessset.push_back(queryprocess);
-
-        if (!queryDoneFlag)continue;
-
-        for (auto query_ps : queryprocessset) {
-            labelFlag = false;
-            for (string label  : query_ps) {
-                //cout <<label<<endl;
-                if (label == "!") {
-                    queryDoneFlag = true;
-                    break;
-                } else if (label == "c" || label == "j" || label == "c_id" || label == "j_id") {
-                    if (label == "c")tempNode->SetOperation(CONJ);
-                    else if (label == "j")tempNode->SetOperation(JOIN);
-                    else if (label == "c_id")tempNode->SetOperation(CONJ_ID);
-                    else if (label == "j_id")tempNode->SetOperation(JOIN_ID);
-                    //tempNode->hight++;
-                    tempNode->NewLeft();
-                    tempNode->NewRight();
-                    tempNode->leftNode->topNode = tempNode;
-                    tempNode->rightNode->topNode = tempNode;
-                    tempNode = tempNode->leftNode;
-                } else {
-                    labelFlag = true;
-                    if (label == "id")idFlag = true;
-                    else labelsequence.push_back(stoi(label));
-                }
-            }
-            if (labelFlag) {
-                tempNode->SetLabelSequence(labelsequence);
-                if (idFlag)tempNode->SetOperation(ID);
-                labelsequence.clear();
-                if (tempNode->topNode != NULL) {
-                    if (!tempNode->topNode->leftdone) {
-                        tempNode->topNode->leftdone = true;
-                        tempNode = tempNode->topNode->rightNode;
-                    } else {
-
-                        while (1) {
-                            tempNode = tempNode->topNode;
-                            if (tempNode == NULL)break;
-                            tempNode->hight = max(tempNode->leftNode->hight, tempNode->rightNode->hight) + 1;
-                            if (!tempNode->leftdone) {
-                                tempNode->leftdone = true;
-                                tempNode = tempNode->rightNode;
-                                break;
-                            }
+                    while (1) {
+                        tempNode = tempNode->topNode;
+                        if (tempNode == NULL)break;
+                        tempNode->hight = max(tempNode->leftNode->hight, tempNode->rightNode->hight) + 1;
+                        if (!tempNode->leftdone) {
+			    tempNode->leftdone=true;
+                            tempNode = tempNode->rightNode;
+                            break;
                         }
                     }
                 }
-
             }
         }
-        tempQuery.rootquery = rootNode;
-        rootqueries.push_back(tempQuery);
+        if(queryDoneFlag){
+            tempQuery.rootquery=rootNode;
+            rootqueries.push_back(tempQuery);
         //tempQuery.ShowQuery(&tempQuery.rootquery);
-        rootNode.clear();
-        tempNode = &rootNode;
-        queryprocessset.clear();
+            rootNode.clear();
+            tempNode = &rootNode;
+        }
+        //std::cout << "\n";
     }
-
 }
 
 
@@ -154,11 +110,65 @@ void Query::ShowQuery(QueryNode* query_)
 	if(query_->rightNode!=NULL)ShowQuery(query_->rightNode);
 }
 
+void QuerySet::EnumerateQuery(int labelnum_) {
+
+    Query tempQuery;
+    string line, label;
+
+    //std::stringstream ss(line);
+    //ss.ignore(line.size(), ' ');
+    //std::cout << name << " = ";
+    QueryNode rootNode;
+    QueryNode* tempNode;
+    rootNode.clear();
+    //tempNode->clear();
+    tempNode = &rootNode;
+    vector<int> labelsequence;
+    bool function;
+    bool leftdone=false;
+    vector<vector<string>> perser;
+
+    for(int l_1 = 0 ; l_1< labelnum_; l_1++ ){
+        for(int l_2 = 0 ; l_2< labelnum_; l_2++ ){
+            for(int l_3 = 0 ; l_3< labelnum_; l_3++ ) {
+                for (int l_4 = 0; l_4 < labelnum_; l_4++) {
+                    tempNode->SetOperation(CONJ);
+                    tempNode->NewLeft();
+                    tempNode->NewRight();
+                    tempNode->leftNode->topNode = tempNode;
+                    tempNode->rightNode->topNode = tempNode;
+                    tempNode->hight = 1;
+
+                    labelsequence.clear();
+                    labelsequence.push_back(l_1);
+                    labelsequence.push_back(l_2);
+                    tempNode->leftNode->SetLabelSequence(labelsequence);
+
+                    labelsequence.clear();
+                    labelsequence.push_back(l_3);
+                    labelsequence.push_back(l_4);
+                    tempNode->rightNode->SetLabelSequence(labelsequence);
+
+                    tempQuery.rootquery = rootNode;
+                    rootqueries.push_back(tempQuery);
+                    rootNode.clear();
+                    tempNode = &rootNode;
+                }
+            }
+        }
+    }
+        //std::cout << "\n";
+
+}
+
 void Query::Evaluation(vector<pair<int,int>>& answers, PathIndex& pathindex){
 
     if(rootquery.hight==0){
         if(rootquery.operation==ID)Label2PathID(answers, pathindex,rootquery.labelsequence);
-        else Label2Path(answers, pathindex,rootquery.labelsequence);
+        else {
+	    Label2Path(answers, pathindex,rootquery.labelsequence);
+       //Label2Path(answers, pathindex,rootquery.labelsequence);
+	}
 	//cout<<answers.size()<<endl;
     }
     else{
@@ -189,6 +199,7 @@ void Query::Evaluation(vector<pair<int,int>>& answers,PathIndex& pathindex, Quer
     if(query_node->hight==0){
         if(query_node->operation==ID)Label2PathID(answers, pathindex,query_node->labelsequence);
         else Label2Path(answers, pathindex,query_node->labelsequence);
+    cout<<answers.size()<<endl;
 	}
     else{
         vector<pair<int,int>> lPath;lPath.clear(); Evaluation(lPath, pathindex, query_node->leftNode);
@@ -199,6 +210,7 @@ void Query::Evaluation(vector<pair<int,int>>& answers,PathIndex& pathindex, Quer
             sort(lPath.begin(),lPath.end(),cmpdst);
             Join(answers, lPath,rPath);
             sort(answers.begin(),answers.end());
+            //answers.erase(std::unique(answers.begin(), answers.end()), answers.end());
             //cout<<"leftsize: "<<lPath.size()<<", rightsize: "<<rPath.size()<<", join:"<<answers.size()<<endl;
         }
         else if(query_node->operation == CONJ)Conjunction(answers, lPath,rPath);
@@ -224,20 +236,22 @@ void Query::Join(vector<pair<int,int>>& answers, vector<pair<int,int>>& l, vecto
         for_r=restart_r;
         restartFlag=true;
         while(1) {
-            if (l[i].second == r[for_r].first) {
-                answers.push_back(make_pair(l[i].first, r[for_r].second));
-                if(restartFlag){
-                    restart_r=for_r;
-                    restartFlag=false;
+            //for (int j = 0; j < r.size(); j++) {
+                if (l[i].second == r[for_r].first) {
+                    answers.push_back(make_pair(l[i].first, r[for_r].second));
+                    if(restartFlag){
+                        restart_r=for_r;
+                        restartFlag=false;
+                    }
                 }
-            }
-            if (l[i].second < r[for_r].first) {
-                if(restartFlag)restart_r=for_r;
-                break;
-            }
+                if (l[i].second < r[for_r].first) {
+                    if(restartFlag)restart_r=for_r;
+                    break;
+                }
 
             for_r++;
             if(for_r >= rsize)break;
+            //}
         }
         if(for_r >= rsize&&restartFlag)break;
     }
@@ -255,27 +269,29 @@ void Query::JoinID(vector<pair<int,int>>& answers, vector<pair<int,int>>& l, vec
         for_r=restart_r;
         restartFlag=true;
         while(1) {
-            if (l[i].second == r[for_r].first) {
-                if(l[i].first == r[for_r].second)answers.push_back(make_pair(l[i].first, r[for_r].second));
-                if(restartFlag){
-                    restart_r=for_r;
-                    restartFlag=false;
+            //for (int j = 0; j < r.size(); j++) {
+                if (l[i].second == r[for_r].first) {
+                    if(l[i].first == r[for_r].second)answers.push_back(make_pair(l[i].first, r[for_r].second));
+                    if(restartFlag){
+                        restart_r=for_r;
+                        restartFlag=false;
+                    }
                 }
-            }
-            if (l[i].second < r[for_r].first) {
-                if(restartFlag)restart_r=for_r;
-                break;
-            }
+                if (l[i].second < r[for_r].first) {
+                    if(restartFlag)restart_r=for_r;
+                    break;
+                }
 
             for_r++;
             if(for_r >= rsize)break;
+            //}
         }
         if(for_r >= rsize&&restartFlag)break;
     }
 };
 
 void Query::Conjunction(vector<pair<int,int>>& answers, vector<pair<int,int>>& l, vector<pair<int,int>>& r){
-
+    //vector<pair<int,int>>* pathlist;
     int lcount=0,rcount=0;
     //cout<<"start conjunction"<<endl;
     while(1){
@@ -296,7 +312,7 @@ void Query::Conjunction(vector<pair<int,int>>& answers, vector<pair<int,int>>& l
 };
 
 void Query::ConjunctionID(vector<pair<int,int>>& answers, vector<pair<int,int>>& l, vector<pair<int,int>>& r){
-
+    //vector<pair<int,int>>* pathlist;
     int lcount=0,rcount=0;
     while(1){
 
@@ -311,6 +327,7 @@ void Query::ConjunctionID(vector<pair<int,int>>& answers, vector<pair<int,int>>&
         }
         else rcount++;
 
+        //if(lcount>l.size()||rcount>r.size())break;
     }
 
 };
@@ -318,9 +335,9 @@ void Query::ConjunctionID(vector<pair<int,int>>& answers, vector<pair<int,int>>&
 void Query::Label2Path(vector<pair<int,int>>& answers, PathIndex& pathindex, vector<int>& labellist){
 
     long int labelid = encodeLabel(labellist, pathindex.labelnum,pathindex.k);
-    if(pathindex.hash_labelid2index[labelid]==0)return;
+    if(pathindex.labelidhash.find(labelid)==pathindex.labelidhash.end())return;
 
-    for(auto path : pathindex.label2path[pathindex.hash_labelid2index[labelid]-1]){
+    for(auto path : pathindex.label2path[pathindex.labelidhash[labelid]-1]){
         answers.push_back(path);
     }
 };
@@ -328,9 +345,9 @@ void Query::Label2Path(vector<pair<int,int>>& answers, PathIndex& pathindex, vec
 void Query::Label2PathID(vector<pair<int,int>>& answers, PathIndex& pathindex, vector<int>& labellist){
 
     long int labelid = encodeLabel(labellist, pathindex.labelnum,pathindex.k);
-    if(pathindex.hash_labelid2index[labelid]==0)return;
+    if(pathindex.labelidhash.find(labelid)==pathindex.labelidhash.end())return;
 
-    for(auto path : pathindex.label2path[pathindex.hash_labelid2index[labelid]-1]){
+    for(auto path : pathindex.label2path[pathindex.labelidhash[labelid]-1]){
         if(path.first==path.second)answers.push_back(path);
     }
 
