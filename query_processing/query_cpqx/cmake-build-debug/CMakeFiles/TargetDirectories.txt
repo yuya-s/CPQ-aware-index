@@ -1,0 +1,3 @@
+/home/sasaki/workspace/pathquery/CPQ_aware_index_codebases/query_processing/query_cpqx/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/sasaki/workspace/pathquery/CPQ_aware_index_codebases/query_processing/query_cpqx/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/sasaki/workspace/pathquery/CPQ_aware_index_codebases/query_processing/query_cpqx/cmake-build-debug/CMakeFiles/query_cpqx.dir

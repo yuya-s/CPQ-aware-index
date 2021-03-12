@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++0x -g   CMakeFiles/query_cpqx.dir/graph.cpp.o CMakeFiles/query_cpqx.dir/index.cpp.o CMakeFiles/query_cpqx.dir/main.cpp.o CMakeFiles/query_cpqx.dir/query.cpp.o  -o query_cpqx 
