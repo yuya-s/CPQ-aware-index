@@ -1,1 +1,0 @@
-/usr/bin/c++   -std=c++0x -O3 -g   CMakeFiles/construct_cpqx.dir/graph.cpp.o CMakeFiles/construct_cpqx.dir/index.cpp.o CMakeFiles/construct_cpqx.dir/main.cpp.o CMakeFiles/construct_cpqx.dir/kbisimulation.cpp.o  -o construct_cpqx 

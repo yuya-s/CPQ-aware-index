@@ -1,4 +1,0 @@
-/home/sasaki/Downloads/clion-2017.1.1/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/sasaki/workspace/pathquery/CPQ_aware_index_codebases/query_processing/query_cpqx
--- Configuring done
--- Generating done
--- Build files have been written to: /home/sasaki/workspace/pathquery/CPQ_aware_index_codebases/query_processing/query_cpqx/cmake-build-debug
