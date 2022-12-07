@@ -72,6 +72,18 @@ Here, Query parser and optimization are a part of our future work.
 ### Interests
 Interests are extrcated from the set of queries. 
 
+## Citing
+If you find our code is useful for your research, please consider citing the following paper:
+
+    @inproceedings{sasaki2022language,
+    title={Language-aware indexing for conjunctive path queries},
+    author={Sasaki, Yuya and Fletcher, George and Makoto, Onizuka},
+    booktitle={IEEE 38th International Conference on Data Engineering (ICDE)},
+    pages={661--673},
+    year={2022},
+    organization={IEEE}
+    }
+
 ## Authors
 
 This is a joint project between Yuya Sasaki (Osaka University), George Fletcher (Eindhoven University of Technology), and Makoto Onizuka (Osaka University).
